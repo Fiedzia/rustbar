@@ -4,4 +4,4 @@ version = "0.1.0"
 authors = ["Maciej Dziardziel <fiedzia@gmail.com>"]
 description = "Set of progressbars for rust"
 keywords = ["progressbar"]
-licence = "MIT"
+license = "MIT"
