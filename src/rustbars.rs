@@ -1,5 +1,8 @@
 use std::io::{stdout, Write};
 
+use term_utils;
+
+
 pub trait ProgressBar<T> {
     fn new() -> T;
 }
@@ -66,6 +69,10 @@ impl InfiniteProgressBar {
     pub fn get_msg(&self) -> &str { self.msg.as_ref() }
 
     pub fn render(&mut self) {
+
+
+        let (screen_w, screen_h) = term_utils::get_winsize().unwrap();
+
         if self.marker_position <= 0 {
             self.marker_position = 0;
             self.step = 1;
