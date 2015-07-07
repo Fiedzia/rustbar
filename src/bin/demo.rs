@@ -16,7 +16,7 @@ pub fn main(){
     }
 
     println!("\nInifiniteProgressBar demo");
-    let mut infbar  = rustbar::rustbars::InfiniteProgressBar::new();
+    let mut infbar  = rustbar::rustbars::InfiniteProgressBar::new().to_stderr();
     for _ in 0..101 {
         infbar.set_msg("Thinking...");
         infbar.render();
