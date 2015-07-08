@@ -1,42 +1,33 @@
-use std::io::{stdout, stderr, Write};
+use std::io::{stdout, stderr, Write, Result};
 
 //use term_utils;
 
-fn write_to_stdout(buf: String){
+fn write_to_stdout(buf: String)-> Result<()>{
     let mut output = stdout();
-    output.write(buf.as_bytes());
-    output.flush().ok().expect("write to stdout failed");
+    try!(output.write(buf.as_bytes()));
+    try!(output.flush());
+    Ok(())
 }
 
-fn write_to_stderr(buf: String){
+fn write_to_stderr(buf: String) -> Result<()> {
     let mut output = stderr();
-    output.write(buf.as_bytes());
-    output.flush().ok().expect("write to stderr failed");
-}
-
-enum Stream {
-    Stdout,
-    Stderr,
-}
-
-impl Default for Stream {
-   fn default() -> Stream {
-        Stream::Stdout
-   } 
+    try!(output.write(buf.as_bytes()));
+    try!(output.flush());
+    Ok(())
 }
 
 ///all progressbars will implement it
 pub trait ProgressBar<T> {
     fn new() -> T;
     fn to_stderr(mut self) -> T;
-    fn write(&self, buf: String);
+    fn write(&self, buf: String) -> Result<()>;
 }
 
 
 pub struct PercentageProgressBar {
     value: u8, //0..100
     msg:   String,
-    write_fn: fn(String),
+    write_fn: fn(String) -> Result<()>,
 }
 
 impl ProgressBar<PercentageProgressBar> for PercentageProgressBar {
@@ -50,8 +41,9 @@ impl ProgressBar<PercentageProgressBar> for PercentageProgressBar {
         self
     }
 
-    fn write(&self, buf: String) {
-        (self.write_fn)(buf);
+    fn write(&self, buf: String) -> Result<()> {
+        try!((self.write_fn)(buf));
+        Ok(())
     }
 
 }
@@ -59,11 +51,11 @@ impl ProgressBar<PercentageProgressBar> for PercentageProgressBar {
 
 impl PercentageProgressBar {
 
-    pub fn render(&mut self) {
+    pub fn render(&mut self) -> Result<()> {
 
         let s:String = format!("\r{msg}{value}%", msg=self.msg, value=self.value);
-        self.write(s);
-        //self.write(format!("\r{msg}{value}%", msg=self.msg, value=self.value));
+        try!(self.write(s));
+        Ok(())
     }
 
     pub fn set_value(&mut self, value: u8) { if value <= 100 { self.value = value } }
@@ -82,7 +74,7 @@ pub struct InfiniteProgressBar {
     msg:   String,
     marker_position:  i8,
     step: i8,
-    write_fn: fn(String),
+    write_fn: fn(String) -> Result<()>,
 }
 
 impl Default for InfiniteProgressBar {
@@ -107,8 +99,9 @@ impl ProgressBar<InfiniteProgressBar> for InfiniteProgressBar {
         self
     }
 
-    fn write(&self, buf: String) {
-        (self.write_fn)(buf);
+    fn write(&self, buf: String) -> Result<()> {
+        try!((self.write_fn)(buf));
+        Ok(())
     }
 
 }
@@ -118,7 +111,7 @@ impl InfiniteProgressBar {
     pub fn set_msg(&mut self, msg: &str) { self.msg = msg.to_owned() }
     pub fn get_msg(&self) -> &str { self.msg.as_ref() }
 
-    pub fn render(&mut self) {
+    pub fn render(&mut self) -> Result<()> {
 
 
         //let (screen_w, screen_h) = term_utils::get_winsize().unwrap();
@@ -137,7 +130,8 @@ impl InfiniteProgressBar {
         bar.insert(self.marker_position as usize, '#');
 
 
-        self.write(format!("\r{msg}[{bar}]", msg=self.msg, bar=bar));
+        try!(self.write(format!("\r{msg}[{bar}]", msg=self.msg, bar=bar)));
+        Ok(())
 
     }
    

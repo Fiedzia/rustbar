@@ -11,7 +11,7 @@ pub fn main(){
     for idx in 0..101 {
         pbar.set_value(idx);
         pbar.set_msg("Calculating...");
-        pbar.render();
+        pbar.render().unwrap();
         sleep_ms(50);
     }
 
@@ -19,7 +19,7 @@ pub fn main(){
     let mut infbar  = rustbar::rustbars::InfiniteProgressBar::new().to_stderr();
     for _ in 0..101 {
         infbar.set_msg("Thinking...");
-        infbar.render();
+        infbar.render().unwrap();
         sleep_ms(50);
     }
 
