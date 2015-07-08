@@ -7,3 +7,4 @@ keywords = ["progressbar"]
 license = "MIT"
 repository = "https://github.com/Fiedzia/rustbar"
 homepage = "https://github.com/Fiedzia/rustbar"
+exclude = [gif/*]
