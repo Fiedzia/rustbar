@@ -2,6 +2,18 @@ use std::io::{stdout, stderr, Write};
 
 //use term_utils;
 
+fn write_to_stdout(buf: String){
+    let mut output = stdout();
+    output.write(buf.as_bytes());
+    output.flush().ok().expect("write to stdout failed");
+}
+
+fn write_to_stderr(buf: String){
+    let mut output = stderr();
+    output.write(buf.as_bytes());
+    output.flush().ok().expect("write to stderr failed");
+}
+
 enum Stream {
     Stdout,
     Stderr,
@@ -17,42 +29,41 @@ impl Default for Stream {
 pub trait ProgressBar<T> {
     fn new() -> T;
     fn to_stderr(mut self) -> T;
+    fn write(&self, buf: String);
 }
 
 
-#[derive(Default)]
 pub struct PercentageProgressBar {
     value: u8, //0..100
     msg:   String,
-    stream: Stream,
+    write_fn: fn(String),
 }
 
 impl ProgressBar<PercentageProgressBar> for PercentageProgressBar {
 
     fn new() -> PercentageProgressBar {
-        PercentageProgressBar { ..Default::default()}
+        PercentageProgressBar { value: 0, msg: "".to_owned(),  write_fn: write_to_stdout}
     }
 
     fn to_stderr(mut self) ->  PercentageProgressBar{
-        self.stream = Stream::Stderr;
+        self.write_fn = write_to_stderr;
         self
     }
+
+    fn write(&self, buf: String) {
+        (self.write_fn)(buf);
+    }
+
 }
 
 
 impl PercentageProgressBar {
 
-    pub fn render(&self) {
-        match self.stream {
-            Stream::Stdout => {
-                write!(stdout(), "\r{msg}{value}%", msg=self.msg, value=self.value);
-                stdout().flush().ok().expect("write to stdout failed");
-            },
-            Stream::Stderr => {
-                write!(stderr(), "\r{msg}{value}%", msg=self.msg, value=self.value);
-                stderr().flush().ok().expect("write to stdout failed");
-            },
-        }
+    pub fn render(&mut self) {
+
+        let s:String = format!("\r{msg}{value}%", msg=self.msg, value=self.value);
+        self.write(s);
+        //self.write(format!("\r{msg}{value}%", msg=self.msg, value=self.value));
     }
 
     pub fn set_value(&mut self, value: u8) { if value <= 100 { self.value = value } }
@@ -71,7 +82,7 @@ pub struct InfiniteProgressBar {
     msg:   String,
     marker_position:  i8,
     step: i8,
-    stream: Stream,
+    write_fn: fn(String),
 }
 
 impl Default for InfiniteProgressBar {
@@ -80,7 +91,7 @@ impl Default for InfiniteProgressBar {
             step: 1,
             msg: "".to_owned(),
             marker_position: 0,
-            stream: Stream::Stdout
+            write_fn: write_to_stdout
         }
     }
 }
@@ -92,8 +103,12 @@ impl ProgressBar<InfiniteProgressBar> for InfiniteProgressBar {
     }
 
     fn to_stderr(mut self) -> InfiniteProgressBar {
-        self.stream = Stream::Stderr;
+        self.write_fn = write_to_stderr;
         self
+    }
+
+    fn write(&self, buf: String) {
+        (self.write_fn)(buf);
     }
 
 }
@@ -122,16 +137,7 @@ impl InfiniteProgressBar {
         bar.insert(self.marker_position as usize, '#');
 
 
-        match self.stream {
-            Stream::Stdout => {
-                write!(stdout(), "\r{msg}[{bar}]", msg=self.msg, bar=bar);
-                stdout().flush().ok().expect("write to stdout failed");
-            },
-            Stream::Stderr => {
-                write!(stderr(), "\r{msg}[{bar}]%", msg=self.msg, bar=bar);
-                stderr().flush().ok().expect("write to stdout failed");
-            },
-        }
+        self.write(format!("\r{msg}[{bar}]", msg=self.msg, bar=bar));
 
     }
    
