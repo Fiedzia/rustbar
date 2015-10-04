@@ -53,7 +53,7 @@ impl PercentageProgressBar {
 
     pub fn render(&mut self) -> Result<()> {
 
-        let s:String = format!("\r{msg}{value}%", msg=self.msg, value=self.value);
+        let s:String = format!("\r{msg} {value}%", msg=self.msg, value=self.value);
         try!(self.write(s));
         Ok(())
     }
@@ -124,15 +124,15 @@ impl InfiniteProgressBar {
             self.step = -1;
         }
         self.marker_position = self.marker_position + self.step;
-        
+
 
         let mut bar:String = "..........".to_owned(); //10 dots
         bar.insert(self.marker_position as usize, '#');
 
 
-        try!(self.write(format!("\r{msg}[{bar}]", msg=self.msg, bar=bar)));
+        try!(self.write(format!("\r{msg} [{bar}]", msg=self.msg, bar=bar)));
         Ok(())
 
     }
-   
+
 }
